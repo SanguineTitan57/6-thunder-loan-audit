@@ -13,6 +13,7 @@ contract OracleUpgradeable is Initializable {
     }
 
     function __Oracle_init_unchained(address poolFactoryAddress) internal onlyInitializing {
+        // @audit Informational: Written in Aderyn
         s_poolFactory = poolFactoryAddress;
     }
 

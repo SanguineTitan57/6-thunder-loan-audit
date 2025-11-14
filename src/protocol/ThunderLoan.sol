@@ -81,6 +81,7 @@ contract ThunderLoan is Initializable, OwnableUpgradeable, UUPSUpgradeable, Orac
     error ThunderLoan__NotEnoughTokenBalance(uint256 startingBalance, uint256 amount);
     error ThunderLoan__CallerIsNotContract();
     error ThunderLoan__AlreadyAllowed();
+    // @audit Informational: Written in Aderyn
     error ThunderLoan__ExhangeRateCanOnlyIncrease();
     error ThunderLoan__NotCurrentlyFlashLoaning();
     error ThunderLoan__BadNewFee();
@@ -102,11 +103,15 @@ contract ThunderLoan is Initializable, OwnableUpgradeable, UUPSUpgradeable, Orac
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
+    // @audit Informational: Written in Aderyn
     event Deposit(address indexed account, IERC20 indexed token, uint256 amount);
+    // @audit Informational: Written in Aderyn
     event AllowedTokenSet(IERC20 indexed token, AssetToken indexed asset, bool allowed);
+    // @audit Informational: Written in Aderyn
     event Redeemed(
         address indexed account, IERC20 indexed token, uint256 amountOfAssetToken, uint256 amountOfUnderlying
     );
+    // @audit Informational: Written in Aderyn
     event FlashLoan(address indexed receiverAddress, IERC20 indexed token, uint256 amount, uint256 fee, bytes params);
 
     /*//////////////////////////////////////////////////////////////
@@ -201,11 +206,14 @@ contract ThunderLoan is Initializable, OwnableUpgradeable, UUPSUpgradeable, Orac
 
         uint256 fee = getCalculatedFee(token, amount);
         // slither-disable-next-line reentrancy-vulnerabilities-2 reentrancy-vulnerabilities-3
+        // @audit Follow Up
         assetToken.updateExchangeRate(fee);
 
         emit FlashLoan(receiverAddress, token, amount, fee, params);
 
+        // @audit Follow Up
         s_currentlyFlashLoaning[token] = true;
+        // @audit Follow Up
         assetToken.transferUnderlyingTo(receiverAddress, amount);
         // slither-disable-next-line unused-return reentrancy-vulnerabilities-2
         receiverAddress.functionCall(
@@ -222,12 +230,14 @@ contract ThunderLoan is Initializable, OwnableUpgradeable, UUPSUpgradeable, Orac
         );
 
         uint256 endingBalance = token.balanceOf(address(assetToken));
+        // @audit Follow Up
         if (endingBalance < startingBalance + fee) {
             revert ThunderLoan__NotPaidBack(startingBalance + fee, endingBalance);
         }
         s_currentlyFlashLoaning[token] = false;
     }
 
+    // @audit Informational: Written in Aderyn
     function repay(IERC20 token, uint256 amount) public {
         if (!s_currentlyFlashLoaning[token]) {
             revert ThunderLoan__NotCurrentlyFlashLoaning();
@@ -266,16 +276,19 @@ contract ThunderLoan is Initializable, OwnableUpgradeable, UUPSUpgradeable, Orac
         if (newFee > s_feePrecision) {
             revert ThunderLoan__BadNewFee();
         }
+        // @audit Low: Events should be emitted on state changes
         s_flashLoanFee = newFee;
     }
 
     function isAllowedToken(IERC20 token) public view returns (bool) {
         return address(s_tokenToAssetToken[token]) != address(0);
     }
+    // @audit Informational: Written in Aderyn
 
     function getAssetFromToken(IERC20 token) public view returns (AssetToken) {
         return s_tokenToAssetToken[token];
     }
+    // @audit Informational: Written in Aderyn
 
     function isCurrentlyFlashLoaning(IERC20 token) public view returns (bool) {
         return s_currentlyFlashLoaning[token];
@@ -288,6 +301,7 @@ contract ThunderLoan is Initializable, OwnableUpgradeable, UUPSUpgradeable, Orac
     function getFeePrecision() external view returns (uint256) {
         return s_feePrecision;
     }
+    // @audit Informational: Written in Aderyn
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
 }

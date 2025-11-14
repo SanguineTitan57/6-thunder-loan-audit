@@ -81,6 +81,7 @@ contract ThunderLoanUpgraded is Initializable, OwnableUpgradeable, UUPSUpgradeab
     error ThunderLoan__NotEnoughTokenBalance(uint256 startingBalance, uint256 amount);
     error ThunderLoan__CallerIsNotContract();
     error ThunderLoan__AlreadyAllowed();
+    // @audit Informational: Written in Aderyn
     error ThunderLoan__ExhangeRateCanOnlyIncrease();
     error ThunderLoan__NotCurrentlyFlashLoaning();
     error ThunderLoan__BadNewFee();
@@ -102,11 +103,15 @@ contract ThunderLoanUpgraded is Initializable, OwnableUpgradeable, UUPSUpgradeab
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
+    // @audit Informational: Written in Aderyn
     event Deposit(address indexed account, IERC20 indexed token, uint256 amount);
+    // @audit Informational: Written in Aderyn
     event AllowedTokenSet(IERC20 indexed token, AssetToken indexed asset, bool allowed);
+    // @audit Informational: Written in Aderyn
     event Redeemed(
         address indexed account, IERC20 indexed token, uint256 amountOfAssetToken, uint256 amountOfUnderlying
     );
+    // @audit Informational: Written in Aderyn
     event FlashLoan(address indexed receiverAddress, IERC20 indexed token, uint256 amount, uint256 fee, bytes params);
 
     /*//////////////////////////////////////////////////////////////
@@ -227,6 +232,7 @@ contract ThunderLoanUpgraded is Initializable, OwnableUpgradeable, UUPSUpgradeab
         s_currentlyFlashLoaning[token] = false;
     }
 
+    // @audit Informational: Written in Aderyn
     function repay(IERC20 token, uint256 amount) public {
         if (!s_currentlyFlashLoaning[token]) {
             revert ThunderLoan__NotCurrentlyFlashLoaning();
@@ -271,10 +277,12 @@ contract ThunderLoanUpgraded is Initializable, OwnableUpgradeable, UUPSUpgradeab
     function isAllowedToken(IERC20 token) public view returns (bool) {
         return address(s_tokenToAssetToken[token]) != address(0);
     }
+    // @audit Informational: Written in Aderyn
 
     function getAssetFromToken(IERC20 token) public view returns (AssetToken) {
         return s_tokenToAssetToken[token];
     }
+    // @audit Informational: Written in Aderyn
 
     function isCurrentlyFlashLoaning(IERC20 token) public view returns (bool) {
         return s_currentlyFlashLoaning[token];
@@ -283,6 +291,7 @@ contract ThunderLoanUpgraded is Initializable, OwnableUpgradeable, UUPSUpgradeab
     function getFee() external view returns (uint256) {
         return s_flashLoanFee;
     }
+    // @audit Informational: Written in Aderyn
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
 }
