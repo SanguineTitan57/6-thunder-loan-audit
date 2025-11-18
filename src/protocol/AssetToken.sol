@@ -21,6 +21,7 @@ contract AssetToken is ERC20 {
     // The underlying per asset exchange rate
     // ie: s_exchangeRate = 2
     // means 1 asset token is worth 2 underlying tokens
+    // 2 underlying tokens (USDC for example) would need to be deposited to have 1 AssetToken returned.
     uint256 private s_exchangeRate;
     uint256 public constant EXCHANGE_RATE_PRECISION = 1e18;
     uint256 private constant STARTING_EXCHANGE_RATE = 1e18;
@@ -52,28 +53,36 @@ contract AssetToken is ERC20 {
                                FUNCTIONS
     //////////////////////////////////////////////////////////////*/
     constructor(
-        address thunderLoan,
-        IERC20 underlying,
-        string memory assetName,
-        string memory assetSymbol
+        address thunderLoan, // ThunderLoan.sol address
+        IERC20 underlying, // Token to deposit in exchange for asset tokens
+        string memory assetName, // AssetToken Name
+        string memory assetSymbol // AssetToken Symbol
     )
+        // ERC20 Constructor w/ parameters
         ERC20(assetName, assetSymbol)
+        // Zero address checks for ThunderLoan and Underlying parameters
         revertIfZeroAddress(thunderLoan)
         revertIfZeroAddress(address(underlying))
     {
+        // Assigning constructor arguments to state variables
         i_thunderLoan = thunderLoan;
         i_underlying = underlying;
         s_exchangeRate = STARTING_EXCHANGE_RATE;
     }
 
+    // Is there a way I can call this from ThunderLoan when we shouldn't be able to?
     function mint(address to, uint256 amount) external onlyThunderLoan {
         _mint(to, amount);
     }
 
+    // Is there a way I can call this from ThunderLoan when we shouldn't be able to?
     function burn(address account, uint256 amount) external onlyThunderLoan {
         _burn(account, amount);
     }
 
+    // How are Weird ERC20s handled?
+    // What happens if USDC blacklists the ThunderLoan contract?
+    // What happens if USDC blacklists the AssetToken contract?
     function transferUnderlyingTo(address to, uint256 amount) external onlyThunderLoan {
         i_underlying.safeTransfer(to, amount);
     }
@@ -83,10 +92,12 @@ contract AssetToken is ERC20 {
         // 2. How big the fee is should be divided by the total supply
         // 3. So if the fee is 1e18, and the total supply is 2e18, the exchange rate be multiplied by 1.5
         // if the fee is 0.5 ETH, and the total supply is 4, the exchange rate should be multiplied by 1.125
+        // @audit s_exchangeRate should always go up, never down. This is the invariant
         // it should always go up, never down
         // newExchangeRate = oldExchangeRate * (totalSupply + fee) / totalSupply
         // newExchangeRate = 1 (4 + 0.5) / 4
         // newExchangeRate = 1.125
+        // @audit Question: What if totalSupply is 0? Is it possible?
         uint256 newExchangeRate = s_exchangeRate * (totalSupply() + fee) / totalSupply();
 
         if (newExchangeRate <= s_exchangeRate) {

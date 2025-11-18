@@ -17,6 +17,10 @@ contract OracleUpgradeable is Initializable {
         s_poolFactory = poolFactoryAddress;
     }
 
+    // What if the price is manipulated?
+    // Can I manipulate the price?
+    // Reentrancy?
+    // @audit Informational: Forked tests are preferred when testing reliance on live code
     function getPriceInWeth(address token) public view returns (uint256) {
         address swapPoolOfToken = IPoolFactory(s_poolFactory).getPool(token);
         return ITSwapPool(swapPoolOfToken).getPriceOfOnePoolTokenInWeth();
